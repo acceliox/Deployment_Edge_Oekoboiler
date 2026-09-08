@@ -1,0 +1,44 @@
+  # version: "3.8"
+
+services:
+  prod-orchestrator:
+    image: acceliox.azurecr.io/edgev1.oekoboiler.service:3.0.200
+    network_mode: host
+    logging:
+      driver: "none"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: "http://+:80"
+      Logging__LogLevel__Default: Trace
+      MqttClient__Mode: "Prod"
+      MqttClient__Prod__Server: auth.kodi-swiss.ch
+      MqttClient__Prod__Port: "8883"
+      MqttClient__Prod__ProtocolVersion: V311
+      MqttClient__Prod__UseTls: "true"
+      MqttClient__Prod__ClientId: "UniversalClient__{{sys.host}}"
+      MqttClient__Prod__CleanSession: "true"
+      BoxId: "{{sys.host}}"
+      TimeZoneId: "W. Europe Standard Time"
+      MqttServer__Port: "3000"
+      CustomerEditorUser__Name: editor
+      CustomerEditorUser__Password: "12345678"
+      ReportingSettings__SenderConfig__Environment: "prod"
+      Theme: "Oekoboiler"
+
+      # Secrets loaded from files
+      MqttClient__Prod__Username: ${MQTT_USERNAME_PROD}
+      MqttClient__Prod__Password: ${MQTT_PASSWORD_PROD}
+      OpcUaLicense: ${OPCUA_LICENSE}
+      SinumerikLicense: ${SINUMERIK_LICENSE}
+      NetConfig__Username: ${NETCONFIG_USERNAME}
+      NetConfig__Password: ${NETCONFIG_PASSWORD}
+
+    volumes: # hostPath -> mountPath
+      - ./data/prod-orchestrator:/opt/orchestrator
+      - ./data/environment:/opt/environment
+      - /etc/:/opt/host/etc/:rw
+    devices:
+      - "/dev/ttyLP4:/dev/ttyLP4" 
+      - "/dev/ttyLP6:/dev/ttyLP6"
+
+    restart: always
